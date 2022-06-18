@@ -1,1 +1,1 @@
-## This is a personal study project by following the tutorial from https://www.youtube.com/watch?v=VzBGi_n65iU&ab_channel=NicJackson
+## This is a Go study project by following the tutorial from [Nic Jackson](https://www.youtube.com/watch?v=VzBGi_n65iU&ab_channel=NicJackson)
