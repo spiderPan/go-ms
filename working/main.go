@@ -14,8 +14,10 @@ func main() {
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
 	hh := handlers.NewHello(l)
 	gh := handlers.NewGoodbye(l)
+	ph := handlers.NewProducts(l)
 	sm := http.NewServeMux()
-	sm.Handle("/", hh)
+	sm.Handle("/", ph)
+	sm.Handle("/hello", hh)
 	sm.Handle("/goodbye", gh)
 
 	s := &http.Server{
@@ -33,7 +35,7 @@ func main() {
 		}
 	}()
 
-	sigChan := make(chan os.Signal)
+	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
 	signal.Notify(sigChan, os.Kill)
 	sig := <-sigChan
