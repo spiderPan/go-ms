@@ -18,43 +18,48 @@ func TestMain(m *testing.M) {
 	os.Exit(exitVal)
 }
 
-func TestHello(t *testing.T) {
-	hh := handlers.NewHello(logger)
-	name := "pan test"
-
-	req := httptest.NewRequest("GET", "/hello", strings.NewReader(name))
-	w := httptest.NewRecorder()
-	hh.ServeHTTP(w, req)
-
-	resp := w.Result()
-	body, _ := io.ReadAll(resp.Body)
-	expectResponseBody := "Hello " + name
-
-	if resp.StatusCode != 200 {
-		t.Errorf("Status Code error")
+func TestApi(t *testing.T) {
+	data := []struct {
+		method             string
+		endpoint           string
+		handler            string
+		requestData        string
+		expectedStatusCode int
+		expectedBody       string
+	}{
+		{"GET", "/hello", "hello", "pan test", 200, "Hello pan test"},
+		{"GET", "/goodbye", "goodbye", "", 200, "Byee"},
 	}
 
-	if string(body) != expectResponseBody {
-		t.Errorf("Expect body to be %v, rather than %v", expectResponseBody, string(body))
-	}
-}
+	for _, e := range data {
+		t.Run(e.endpoint, func(t *testing.T) {
+			requestReader := strings.NewReader(e.requestData)
 
-func TestGoodbye(t *testing.T) {
-	hh := handlers.NewGoodbye(logger)
+			req := httptest.NewRequest(e.method, e.endpoint, requestReader)
+			w := httptest.NewRecorder()
+			switch e.handler {
+			case "hello":
+				hh := handlers.NewHello(logger)
+				hh.ServeHTTP(w, req)
+			case "goodbye":
+				hh := handlers.NewGoodbye(logger)
+				hh.ServeHTTP(w, req)
 
-	req := httptest.NewRequest("GET", "/hello", nil)
-	w := httptest.NewRecorder()
-	hh.ServeHTTP(w, req)
+			case "products":
+				ph := handlers.NewProducts(logger)
+				ph.GetProducts(w, req)
+			}
 
-	resp := w.Result()
-	body, _ := io.ReadAll(resp.Body)
-	expectResponseBody := "Byee"
+			resp := w.Result()
+			body, _ := io.ReadAll(resp.Body)
 
-	if resp.StatusCode != 200 {
-		t.Errorf("Status Code error")
-	}
+			if resp.StatusCode != e.expectedStatusCode {
+				t.Errorf("Expect status code to be %v, rather than %v", e.expectedStatusCode, resp.StatusCode)
+			}
 
-	if string(body) != expectResponseBody {
-		t.Errorf("Expect body to be %v, rather than %v", expectResponseBody, string(body))
+			if string(body) != e.expectedBody {
+				t.Errorf("Expect body to be %v, rather than %v", e.expectedBody, string(body))
+			}
+		})
 	}
 }
